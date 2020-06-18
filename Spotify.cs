@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.NetworkInformation;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
 using System.Threading.Tasks;
 using SpotifyAPI.Web;
 
 namespace Spotify
 {
-    public sealed class Spotify
+    public static class Spotify
     {
-        private static SpotifyClient _clientInstance = null;
+        private static SpotifyClient _clientInstance;
         private static readonly object Padlock = new object();
 
         private static async Task<SpotifyClient> AccessSpotify()

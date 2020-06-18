@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using ShellProgressBar;
@@ -10,13 +8,18 @@ using SpotifyAPI.Web;
 
 namespace Spotify
 {
-    class Program
+    internal static class Program
     {
-        private static SpotifyClient _spotify = null;
+        private static SpotifyClient _spotify;
         public static async Task Main()
         {
+            Console.InputEncoding = Encoding.Unicode;
+            Console.WriteLine("Pesquisa de gênero musical de artistas");
+            Console.Write("Informe o caminho do csv sem cabeçalho:");
+            string filePath = Console.ReadLine();
+
             _spotify = Spotify.GetSpotifyClient;
-            await GetArtistGenre("C:\\Users\\eduar\\Desktop\\Ouvidas - Artistas.csv");
+            await GetArtistGenre(filePath);
         }
 
         public static async Task GetArtistGenre(string filePath)
