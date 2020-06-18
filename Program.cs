@@ -1,46 +1,64 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using ShellProgressBar;
 using SpotifyAPI.Web;
 
 namespace Spotify
 {
     class Program
     {
+        private static SpotifyClient _spotify = null;
         public static async Task Main()
         {
-            var config = SpotifyClientConfig.CreateDefault();
+            _spotify = Spotify.GetSpotifyClient;
+            await GetArtistGenre("C:\\Users\\eduar\\Desktop\\Ouvidas - Artistas.csv");
+        }
 
-            var request = new ClientCredentialsRequest(
-                Environment.GetEnvironmentVariable("Token_Spotify_ClientID"),
-                Environment.GetEnvironmentVariable("Token_Spotify_ClientSecret")
-                );
-            var response = await new OAuthClient(config).RequestToken(request);
+        public static async Task GetArtistGenre(string filePath)
+        {
+            var lines = File.ReadAllLines(filePath);
 
-            var spotify = new SpotifyClient(config.WithToken(response.AccessToken));
+            Console.WriteLine("Índice do artista:");
+            int artistIndex = Convert.ToInt32(Console.ReadLine());
 
-            var playlist = await spotify.Playlists.Get("0nOc0WO1l1c5vTs6LQ3TIo");
-
-            foreach (var item in playlist.Tracks.Items)
+            using (var progress = new ProgressBar(lines.Length, "pesquisando gênero musical dos artistas"))
             {
-                if (item.Track is FullTrack track)
+                for (int i = 0; i < lines.Length; i++)
                 {
-                    var tempArtists = new StringBuilder();
-                    foreach (var artist in track.Artists.Where(artist => artist.Name != null))
-                    {
-                        tempArtists.Append(artist.Name);
-                        tempArtists.Append(", ");
-                    }
-                    if (tempArtists.Length >= 2) { tempArtists.Length -= 2; }
+                    progress.Tick($"Artist {i + 1} de {lines.Length}");
+                    var data = lines[i].Split(',');
+                    string appendix = lines[i][^1] == ',' ? "" : ",";
 
-                    Console.WriteLine($"{tempArtists} - {track.Name}");
+                    var requestData = new SearchRequest
+                    (SearchRequest.Types.Artist, data[artistIndex])
+                    { Limit = 1 };
+                    SearchResponse search = await _spotify.Search.Item(requestData);
+
+                    if (search.Artists.Items.Count <= 0 ||
+                        search.Artists.Items[0].Genres.Count <= 0)
+                    {
+                        lines[i] += $"{appendix}Desconhecido";
+                        continue;
+                    }
+
+                    var genres = search.Artists.Items[0].Genres;
+                    int genreIndex = genres.FindIndex(IsSearchedGenre);
+                    string genre = genreIndex >= 0 ? genres[genreIndex] : genres[0];
+                    lines[i] += $"{appendix}{genre}";
                 }
             }
+            Console.WriteLine("Gravando arquivo...");
+            File.WriteAllLines(filePath, lines);
+            Console.WriteLine("Arquivo salvo com sucesso.");
+        }
 
-            Console.WriteLine("Press any key to close...");
-            Console.ReadKey();
+        private static bool IsSearchedGenre(string str)
+        {
+            return str.Contains("emo") || str.Contains("lo-fi") || str.Contains("jazz");
         }
     }
 }
