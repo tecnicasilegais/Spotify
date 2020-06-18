@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -30,7 +31,7 @@ namespace Spotify
             {
                 for (int i = 0; i < lines.Length; i++)
                 {
-                    progress.Tick($"Artista {i + 1} de {lines.Length}");
+                    progress.Tick($"Artista {i + 1} de {lines.Length + 1}");
                     var data = lines[i].Split(',');
                     string appendix = lines[i][^1] == ',' ? "" : ",";
 
@@ -47,17 +48,8 @@ namespace Spotify
                     }
 
                     var genres = search.Artists.Items[0].Genres;
-                    string genre = "";
-                    foreach (string s in genres)
-                    {
-                        genre = s switch
-                        {
-                            var a when a.Contains("emo") => "emo",
-                            var a when a.Contains("jazz") => "jazz",
-                            var a when a.Contains("lo-fi") => "lo-fi",
-                            _ => genres[0]
-                        };
-                    }
+                    string genre = SimplifySearchedGenre(genres) ?? genres[0];
+
 
                     lines[i] += $"{appendix}{genre}";
                 }
@@ -65,6 +57,24 @@ namespace Spotify
             Console.WriteLine("Gravando arquivo...");
             File.WriteAllLines(filePath, lines);
             Console.WriteLine("Arquivo salvo com sucesso.");
+        }
+
+        private static string SimplifySearchedGenre(IEnumerable<string> genres)
+        {
+            foreach (string s in genres)
+            {
+                switch (s)
+                {
+                    case var a when a.Contains("emo"):
+                        return "emo";
+                    case var a when a.Contains("jazz"):
+                        return "jazz";
+                    case var a when a.Contains("lo-fi"):
+                        return "lo-fi";
+                }
+            }
+
+            return null;
         }
     }
 }
