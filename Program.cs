@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ShellProgressBar;
@@ -64,20 +65,14 @@ namespace Spotify
 
         private static string SimplifySearchedGenre(IEnumerable<string> genres)
         {
-            foreach (string s in genres)
-            {
-                switch (s)
+            return genres.Select(s => s switch
                 {
-                    case var a when a.Contains("emo"):
-                        return "emo";
-                    case var a when a.Contains("jazz"):
-                        return "jazz";
-                    case var a when a.Contains("lo-fi"):
-                        return "lo-fi";
-                }
-            }
-
-            return null;
+                    var a when a.Contains("emo") => "emo",
+                    var a when a.Contains("jazz") => "jazz",
+                    var a when a.Contains("lo-fi") => "lo-fi",
+                    _ => null,
+                })
+                .FirstOrDefault();
         }
     }
 }
